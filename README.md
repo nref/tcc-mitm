@@ -22,3 +22,17 @@ info: Microsoft.Hosting.Lifetime[0]
 ```
 
 The app automatically generates a Let's Encrypt HTTPS certificate using [LettuceEncrypt](https://github.com/natemcmaster/LettuceEncrypt/). You'll need to update the Garmin app to point to your domain. See the readme for that project.
+
+## API Key
+
+Optional: If your companion app is public-facing, you'll want to prevent unauthorized access to your thermostat by setting an API key. You can add it to either `appsettings.json` (replacing the value `"none"`) or to user secrets, i.e. with `dotnet user-secrets set "tcc:apikey" "<your key here>"`. You'll need to set the same key on your watch `ApiKeyRepo.mc`:
+
+```c
+class ApiKeyRepo {
+
+    function initialize() {
+        Set("none"); // change this
+    }
+    ...
+}
+```
