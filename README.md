@@ -23,6 +23,27 @@ info: Microsoft.Hosting.Lifetime[0]
 
 # Configuration
 
+## Authentication
+
+You need to provide your username and password to Total Connect Comfort. This is the same password you log in with your browser or on your smartphone. 
+
+You can add it to `appsettings.json`:
+
+```json
+  "tcc": {
+    "user": "user@domain.com",
+    "password": "Z1ON0101",
+  },
+```
+
+or you can generate user secrets:
+
+```powershell
+dotnet user-secrets init
+dotnet user-secrets set "tcc:user" "user@domain.com"`
+dotnet user-secrets set "tcc:password" "Z1ON0101"`
+```
+
 ## Certificates
 
 Update the `LettuceEncrypt` configuration section in `appsettings.json` to your domain name(s) and email address
@@ -37,9 +58,25 @@ Either way, You'll need to update the Garmin app to point to your domain. See th
 
 ## API Key
 
-Optional: If your companion app is public-facing, you'll want to prevent unauthorized access to your thermostat by setting an API key. You can add it to either `appsettings.json` (replacing the default value `"supersecret"`) or to user secrets, i.e. with `dotnet user-secrets set "tcc:apikey" "<your key here>"`. It can be any string. 
+_Optional_: If your companion app is public-facing, you'll want to prevent unauthorized access to your thermostat by setting an API key. 
 
-You'll need to set the same key on your watch `ApiKeyRepo.mc`:
+You can add it to `appsettings.json`:
+
+```json
+  "tcc": {
+    "apikey": "supersecret", // change this
+  },
+```
+
+or you can generate user secrets:
+
+```powershell
+dotnet user-secrets init
+dotnet user-secrets set "tcc:user" "user@domain.com"`
+dotnet user-secrets set "tcc:apikey" "<your key here>"
+```
+
+It can be any string, but you'll need to set the same key on your watch `ApiKeyRepo.mc`:
 
 ```c
 class ApiKeyRepo {
