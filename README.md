@@ -76,14 +76,4 @@ dotnet user-secrets set "tcc:user" "user@domain.com"`
 dotnet user-secrets set "tcc:apikey" "<your key here>"
 ```
 
-It can be any string, but you'll need to set the same key on your watch `ApiKeyRepo.mc`:
-
-```c
-class ApiKeyRepo {
-
-    function initialize() {
-        Set("supersecret"); // change this
-    }
-    ...
-}
-```
+It can be any string, but you'll need to set the same key on your watch. You can follow the directions [here](https://github.com/slater1/tcc-garmin/blob/main/README.md).
