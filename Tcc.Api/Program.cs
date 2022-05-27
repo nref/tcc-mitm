@@ -21,12 +21,21 @@ public static class Program
         string password = config!["tcc:password"];
         string apikey = config!["tcc:apikey"] ?? "supersecret";
 
-        app.UseContextMiddleware(apikey);
+        app.MapWhen(context => context.Request.Path != "/", builder =>
+        {
+            builder.UseContextMiddleware(apikey);
+        });
         app.UseHttpsRedirection();
         app.UseHttpLogging();
 
         IFileRepo repo = new FileRepo("sessionid.txt");
         ITccClient client = new TccClient(repo, user, password);
+
+        app.MapGet("/", async context =>
+        {
+            context.Response.Redirect("https://github.com/slater1/tcc-mitm");
+            await Task.CompletedTask;
+        });
 
         app.MapGet("/setpoint", async context =>
         {
