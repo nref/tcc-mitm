@@ -11,10 +11,6 @@ public static class Program
 
         var app = builder.Build();
 
-        app.UseContextMiddleware();
-        app.UseHttpsRedirection();
-        app.UseHttpLogging();
-
         // Setup log
         var factory = app.Services.GetService<ILoggerFactory>();
         ILogger log = factory!.CreateLogger("Tcc.Api");
@@ -23,6 +19,11 @@ public static class Program
         var config = app.Services.GetService<IConfiguration>();
         string user = config!["tcc:user"];
         string password = config!["tcc:password"];
+        string apikey = config!["tcc:apikey"] ?? "none";
+
+        app.UseContextMiddleware(apikey);
+        app.UseHttpsRedirection();
+        app.UseHttpLogging();
 
         IFileRepo repo = new FileRepo("sessionid.txt");
         ITccClient client = new TccClient(repo, user, password);

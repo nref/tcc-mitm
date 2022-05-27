@@ -2,8 +2,8 @@
 
 public static class MiddlewareExtensions
 {
-    public static IApplicationBuilder UseContextMiddleware(this IApplicationBuilder builder)
+    public static IApplicationBuilder UseContextMiddleware(this IApplicationBuilder builder, string apikey)
     {
-        return builder.UseMiddleware<ContextMiddleware>();
+        return builder.UseMiddleware<ContextMiddleware>(apikey);
     }
 }
