@@ -19,7 +19,7 @@ public static class Program
         var config = app.Services.GetService<IConfiguration>();
         string user = config!["tcc:user"];
         string password = config!["tcc:password"];
-        string apikey = config!["tcc:apikey"] ?? "none";
+        string apikey = config!["tcc:apikey"] ?? "supersecret";
 
         app.UseContextMiddleware(apikey);
         app.UseHttpsRedirection();
