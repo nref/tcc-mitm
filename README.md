@@ -4,7 +4,7 @@ MITM (Man-in-the-middle): The Garmin app talks to this service, and this service
 
 The TCC web API has been reverse-engineered using [HTTP Toolkit and Frida](https://httptoolkit.tech/blog/frida-certificate-pinning/) to analyze the HTTP traffic of the [Total Connect Comfort Android app](https://play.google.com/store/apps/details?id=com.honeywell.mobile.android.totalComfort).
 
-## Quick start
+# Quick start
 
 ```powershell
 git clone https://github.com/slater1/tcc-mitm
@@ -21,17 +21,31 @@ info: Microsoft.Hosting.Lifetime[0]
       Content root path: C:\Users\DougSlater\tcc-mitm\Tcc.Api\
 ```
 
-The app automatically generates a Let's Encrypt HTTPS certificate using [LettuceEncrypt](https://github.com/natemcmaster/LettuceEncrypt/). You'll need to update the Garmin app to point to your domain. See the readme for that project.
+# Configuration
+
+## Certificates
+
+Update the `LettuceEncrypt` configuration section in `appsettings.json` to your domain name(s) and email address
+
+The app automatically generates a Let's Encrypt HTTPS certificate using [LettuceEncrypt](https://github.com/natemcmaster/LettuceEncrypt/). 
+
+## Domains
+
+If hosting locally, you might consider updating your DNS records or port forwarding as necessary. If hosting in the cloud, you can skip this. 
+
+Either way, You'll need to update the Garmin app to point to your domain. See that [README](https://github.com/slater1/tcc-garmin/blob/main/README.md).
 
 ## API Key
 
-Optional: If your companion app is public-facing, you'll want to prevent unauthorized access to your thermostat by setting an API key. You can add it to either `appsettings.json` (replacing the value `"none"`) or to user secrets, i.e. with `dotnet user-secrets set "tcc:apikey" "<your key here>"`. It can be any string. You'll need to set the same key on your watch `ApiKeyRepo.mc`:
+Optional: If your companion app is public-facing, you'll want to prevent unauthorized access to your thermostat by setting an API key. You can add it to either `appsettings.json` (replacing the default value `"supersecret"`) or to user secrets, i.e. with `dotnet user-secrets set "tcc:apikey" "<your key here>"`. It can be any string. 
+
+You'll need to set the same key on your watch `ApiKeyRepo.mc`:
 
 ```c
 class ApiKeyRepo {
 
     function initialize() {
-        Set("none"); // change this
+        Set("supersecret"); // change this
     }
     ...
 }
