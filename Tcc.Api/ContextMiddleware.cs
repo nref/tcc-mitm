@@ -18,7 +18,7 @@ public class ContextMiddleware
         if (key != _apikey)
         {
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            string json = System.Text.Json.JsonSerializer.Serialize(new { error = "Bad apikey \'key\'" });
+            string json = System.Text.Json.JsonSerializer.Serialize(new { error = $"Bad apikey '{key}'" });
             await context.Response.WriteAsync(json);
             return;
         }
