@@ -28,7 +28,7 @@ public static class Program
         IFileRepo repo = new FileRepo("sessionid.txt");
         ITccClient client = new TccClient(repo, user, password);
 
-        app.MapGet("setpoint", async context =>
+        app.MapGet("/setpoint", async context =>
         {
             int? setpoint = await client.GetCoolSetpointAsync();
 
@@ -49,7 +49,7 @@ public static class Program
 
             if (!form.TryGet("setpoint", out int setpoint))
             {
-                Log.Error($"/cool: Could not find setpoint in request");
+                Log.Error($"Could not find setpoint in request");
                 return;
             }
 
