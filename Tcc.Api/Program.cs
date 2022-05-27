@@ -21,7 +21,7 @@ public static class Program
         string password = config!["tcc:password"];
         string apikey = config!["tcc:apikey"] ?? "supersecret";
 
-        app.MapWhen(context => context.Request.Path != "/", builder =>
+        app.UseWhen(context => context.Request.Path != "/", builder =>
         {
             builder.UseContextMiddleware(apikey);
         });
