@@ -2,76 +2,94 @@ namespace Tcc.Api;
 
 public static class Program
 {
-    public static async Task Main(string[] args)
+  public static async Task Main(string[] args)
+  {
+    Context.Id.Value = Guid.NewGuid();
+
+    var builder = WebApplication.CreateBuilder(args);
+    builder.Services.AddLettuceEncrypt();
+
+    var app = builder.Build();
+
+    // Setup log
+    var factory = app.Services.GetService<ILoggerFactory>();
+    ILogger log = factory!.CreateLogger("Tcc.Api");
+    Log.Sink = log;
+
+    var config = app.Services.GetService<IConfiguration>();
+    string user = config!["tcc:user"];
+    string password = config!["tcc:password"];
+    string apikey = config!["tcc:apikey"] ?? "supersecret";
+
+    app.UseWhen(context => context.Request.Path != "/", builder =>
     {
-        Context.Id.Value = Guid.NewGuid();
+      builder.UseContextMiddleware(apikey);
+    });
+    app.UseHttpsRedirection();
+    app.UseHttpLogging();
 
-        var builder = WebApplication.CreateBuilder(args);
-        builder.Services.AddLettuceEncrypt();
+    IFileRepo repo = new FileRepo("sessionid.txt");
+    ITccClient client = new TccClient(repo, user, password);
 
-        var app = builder.Build();
+    app.MapGet("/", async context =>
+    {
+      context.Response.Redirect("https://github.com/slater1/tcc-mitm");
+      await Task.CompletedTask;
+    });
 
-        // Setup log
-        var factory = app.Services.GetService<ILoggerFactory>();
-        ILogger log = factory!.CreateLogger("Tcc.Api");
-        Log.Sink = log;
+    app.MapGet("/setpoint", async context =>
+    {
+      int? setpoint = await client.GetCoolSetpointAsync();
 
-        var config = app.Services.GetService<IConfiguration>();
-        string user = config!["tcc:user"];
-        string password = config!["tcc:password"];
-        string apikey = config!["tcc:apikey"] ?? "supersecret";
+      context.Response.StatusCode = setpoint != null
+              ? StatusCodes.Status200OK
+              : StatusCodes.Status500InternalServerError;
 
-        app.UseWhen(context => context.Request.Path != "/", builder =>
-        {
-            builder.UseContextMiddleware(apikey);
-        });
-        app.UseHttpsRedirection();
-        app.UseHttpLogging();
+      context.Response.ContentType = "application/json";
 
-        IFileRepo repo = new FileRepo("sessionid.txt");
-        ITccClient client = new TccClient(repo, user, password);
+      string json = System.Text.Json.JsonSerializer.Serialize(new { setpoint });
 
-        app.MapGet("/", async context =>
-        {
-            context.Response.Redirect("https://github.com/slater1/tcc-mitm");
-            await Task.CompletedTask;
-        });
+      await context.Response.WriteAsync(json);
+    });
 
-        app.MapGet("/setpoint", async context =>
-        {
-            int? setpoint = await client.GetCoolSetpointAsync();
+    app.MapPost("/setpoint", async context =>
+    {
+      IFormCollection? form = await context.Request.ReadFormAsync();
 
-            context.Response.StatusCode = setpoint != null
-                ? StatusCodes.Status200OK
-                : StatusCodes.Status500InternalServerError;
-            
-            context.Response.ContentType = "application/json";
+      if (!form.TryGet("setpoint", out int setpoint))
+      {
+        Log.Error($"Could not find setpoint in request");
+        return;
+      }
 
-            string json = System.Text.Json.JsonSerializer.Serialize(new { setpoint });
+      Log.Info($"/cool: Got setpoint {setpoint}");
+      bool ok = await client.SetCoolSetpointAsync(setpoint);
 
-            await context.Response.WriteAsync(json);
-        });
+      context.Response.StatusCode = ok
+              ? StatusCodes.Status200OK
+              : StatusCodes.Status500InternalServerError;
 
-        app.MapPost("/setpoint", async context =>
-        {
-            IFormCollection? form = await context.Request.ReadFormAsync();
+      context.Response.ContentType = "application/json";
+    });
 
-            if (!form.TryGet("setpoint", out int setpoint))
-            {
-                Log.Error($"Could not find setpoint in request");
-                return;
-            }
+    app.MapPost("/fan/on", async context =>
+    {
+      bool ok = await client.SetFanAsync(on: true);
 
-            Log.Info($"/cool: Got setpoint {setpoint}");
-            bool ok = await client.SetAsync(setpoint);
+      context.Response.StatusCode = ok
+              ? StatusCodes.Status200OK
+              : StatusCodes.Status500InternalServerError;
+    });
 
-            context.Response.StatusCode = ok
-                ? StatusCodes.Status200OK
-                : StatusCodes.Status500InternalServerError;
+    app.MapPost("/fan/off", async context =>
+    {
+      bool ok = await client.SetFanAsync(on: false);
 
-            context.Response.ContentType = "application/json";
-        });
+      context.Response.StatusCode = ok
+              ? StatusCodes.Status200OK
+              : StatusCodes.Status500InternalServerError;
+    });
 
-        await app.RunAsync();
-    }
+    await app.RunAsync();
+  }
 }
