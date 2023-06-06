@@ -62,7 +62,7 @@ public static class Program
         return;
       }
 
-      Log.Info($"/cool: Got setpoint {setpoint}");
+      Log.Info($"/setpoint: Got setpoint {setpoint}");
       bool ok = await client.SetCoolSetpointAsync(setpoint);
 
       context.Response.StatusCode = ok
@@ -84,6 +84,15 @@ public static class Program
     app.MapPost("/fan/off", async context =>
     {
       bool ok = await client.SetFanAsync(on: false);
+
+      context.Response.StatusCode = ok
+              ? StatusCodes.Status200OK
+              : StatusCodes.Status500InternalServerError;
+    });
+
+    app.MapPost("/fan/schedule/{minutes}", async (int minutes, HttpContext context) =>
+    {
+      bool ok = await client.ScheduleFanAsync(minutes);
 
       context.Response.StatusCode = ok
               ? StatusCodes.Status200OK

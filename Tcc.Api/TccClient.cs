@@ -99,8 +99,10 @@ public class TccClient : ITccClient
 
     fanCts_.Cancel();
     fanCts_ = new();
+
+    await SetFanAsync(on: true);
     await Task
-      .Delay(TimeSpan.FromMilliseconds(minutes), fanCts_.Token)
+      .Delay(TimeSpan.FromMinutes(minutes), fanCts_.Token)
       .ContinueWith(async _ =>
       {
         await SetFanAsync(on: false);
