@@ -87,10 +87,19 @@ public class TccClient : ITccClient
             { "CoolSetpoint", $"{coolSetpoint}" },
       })).Item1;
 
-  public Task<bool> SetFanAsync(bool on)
+  public async Task<bool> SetFanAsync(bool on)
   {
     Log.Info($"{nameof(SetFanAsync)}({on})");
-    return Task.FromResult(true);
+
+    (bool ok, string result, string response) = await PostAsync("https://tccna.resideo.com/ws/MobileV2.asmx/ChangeThermostatFan",
+      () => new Dictionary<string, string>()
+      {
+        { "SessionID", _sessionId },
+        { "ThermostatID", _thermostatId },
+        { "FanSwitch", on ? "On" : "FollowSchedule" }, // Also "Auto"
+      });
+
+    return ok;
   }
 
   public async Task<bool> ScheduleFanAsync(int minutes)
@@ -193,6 +202,12 @@ public class TccClient : ITccClient
         new StringContent(string.Join("&", values.Select(kvp => $"{kvp.Key}={kvp.Value}")), Encoding.UTF8, "application/x-www-form-urlencoded"));
 
     string xml = await response.Content.ReadAsStringAsync();
+
+    if (Xml.TryGetNodeValue(xml, "Result", out string result) && result == "TooManyAttempt") 
+    {
+      Log.Error($"{nameof(LogIn)}: Too many attempts");
+      return string.Empty;
+    }
 
     if (!Xml.TryGetNodeValue(xml, "SessionID", out string sessionId))
     {
