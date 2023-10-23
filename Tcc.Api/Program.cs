@@ -7,7 +7,6 @@ public static class Program
     Context.Id.Value = Guid.NewGuid();
 
     var builder = WebApplication.CreateBuilder(args);
-    builder.Services.AddLettuceEncrypt();
 
     var app = builder.Build();
 
@@ -17,9 +16,10 @@ public static class Program
     Log.Sink = log;
 
     var config = app.Services.GetService<IConfiguration>();
-    string user = config!["tcc:user"];
-    string password = config!["tcc:password"];
-    string apikey = config!["tcc:apikey"] ?? "supersecret";
+
+    string user = Environment.GetEnvironmentVariable("TCC_USER") ?? "";
+    string password = Environment.GetEnvironmentVariable("TCC_PASSWORD") ?? "";
+    string apikey = Environment.GetEnvironmentVariable("TCC_API_KEY") ?? "";
 
     app.UseWhen(context => context.Request.Path != "/", builder =>
     {

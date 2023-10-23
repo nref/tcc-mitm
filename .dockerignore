@@ -1,0 +1,6 @@
+# flyctl launch added from .gitignore
+**/.vs
+**/bin
+**/obj
+**/Tcc.Api/sessionid.txt
+fly.toml
